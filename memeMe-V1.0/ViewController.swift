@@ -24,6 +24,7 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
     @IBOutlet weak var bottomToolbar: UIToolbar!
     
     @IBOutlet weak var shareButton: UIBarButtonItem!
+    
     //MARK: - Proprites
     
     var activeTextField: UITextField!
@@ -35,31 +36,23 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
         NSAttributedString.Key.strokeWidth:  -4,
     ]
     
-    
     //MARK: - Functions
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        //Set all neccessry attribute for topTextField
-        topTextField.delegate = self
-        topTextField.defaultTextAttributes = memeTextAttributes
-        topTextField.textAlignment = .center
+        //Set all neccessry attribute for topTextField and buttonTextFiled
+        setupTextField(topTextField, "TOP")
+        setupTextField(bottomTextFiled, "BOTTOM")
         
-        
-        //Set all neccessry attribute for buttonTextFiled
-        bottomTextFiled.delegate = self
-        bottomTextFiled.defaultTextAttributes = memeTextAttributes
-        bottomTextFiled.textAlignment = .center
         shareButton.isEnabled=false
         
-        //set TOP and BOTTOM
-        setTextFiled()
     }
     
-    func setTextFiled(){
-        topTextField.text = "TOP"
-        bottomTextFiled.text = "BOTTOM"
-        
+    func setupTextField(_ textField: UITextField, _ defaultText: String) {
+        textField.delegate = self
+        textField.defaultTextAttributes = memeTextAttributes
+        textField.textAlignment = .center
+        textField.text = defaultText
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -79,11 +72,7 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
     
     @IBAction func pickAnImageFromAlbum(_ sender:Any) {
         
-        let imagePicker = UIImagePickerController()
-        imagePicker.delegate = self
-        imagePicker.sourceType = .photoLibrary
-        present(imagePicker, animated: true, completion: nil)
-        
+        pickFromSource(.photoLibrary)
     }
     
     //Once add the two method the image picker is no longer automatically dismissed, Need dissmis to be called
@@ -98,7 +87,8 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
             imgeView.image = image
             
             //set TOP and BOTTOM once pick new photo
-            setTextFiled()
+            setupTextField(topTextField, "TOP")
+            setupTextField(bottomTextFiled, "BOTTOM")
         }
         
         shareButton.isEnabled=true
@@ -117,9 +107,14 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
     //MARK: - Pick An Image From Camera
     @IBAction func pickAnImageFromCamera(_ sender: Any) {
         
+        pickFromSource(.camera)
+    }
+    
+    //MARK: - Pick An Image From Source
+    func pickFromSource(_ source: UIImagePickerController.SourceType) {
         let imagePicker = UIImagePickerController()
-        imagePicker.delegate = self
-        imagePicker.sourceType = .camera
+        imagePicker.delegate = self;
+        imagePicker.sourceType = source
         present(imagePicker, animated: true, completion: nil)
     }
     
@@ -136,7 +131,6 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
         if bottomTextFiled.text=="BOTTOM" && textField == bottomTextFiled {
             bottomTextFiled.text=""
         }
-        
         
     }
     
@@ -172,7 +166,6 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
     
     
     
-    
     func subscribeToKeyboardNotifications() {
         
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
@@ -190,18 +183,22 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     
-    //MARK: Share
+    //MARK: - Share
     
     @IBAction func share(){
         
         let image = generateMemedImage()
         let controller = UIActivityViewController(activityItems: [image], applicationActivities: nil)
+        
+        controller.completionWithItemsHandler = { [weak self] type, completed, items, error in
+            
+            if completed {
+                self?.save()
+            }
+            
+            controller.dismiss(animated: true, completion: nil)
+        }
         self.present(controller, animated: true, completion: save)
-        
-        
-        
-        
-        
     }
     
     
@@ -211,7 +208,7 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
         let memedImage =  generateMemedImage()
         
         // Create an object
-        let meme = Meme(topText: topTextField.text!, bottomText: bottomTextFiled.text!, originalImage: imgeView.image!, memedImage: memedImage)
+        _ = Meme(topText: topTextField.text!, bottomText: bottomTextFiled.text!, originalImage: imgeView.image!, memedImage: memedImage)
         
         //To save it directly
         // UIImageWriteToSavedPhotosAlbum(memedImage,nil,nil,nil)
@@ -241,7 +238,4 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
     
     
 }
-
-
-
 
