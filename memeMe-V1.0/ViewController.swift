@@ -178,9 +178,8 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
     
     func unsubscribeFromKeyboardNotifications() {
         
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)
-        
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+       // Remove observer for all subscribers at once
+        NotificationCenter.default.removeObserver(self)
     }
     
     //MARK: - Share
@@ -219,8 +218,7 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
     func generateMemedImage() -> UIImage {
         
         //Hide toolbars
-        topToolbar.isHidden=true
-        bottomToolbar.isHidden=true
+        hideTopAndBottomBars(true)
         
         // Render view to an image
         UIGraphicsBeginImageContext(self.view.frame.size)
@@ -229,10 +227,16 @@ class ViewController: UIViewController , UIImagePickerControllerDelegate, UINavi
         UIGraphicsEndImageContext()
         
         //Show toolbars
-        topToolbar.isHidden=false
-        bottomToolbar.isHidden=false
+        hideTopAndBottomBars(false)
         
         return memedImage
+    }
+    
+    
+    // to Hide and show top and bottom bars
+    func hideTopAndBottomBars(_ hide: Bool) {
+        topToolbar.isHidden=hide
+        bottomToolbar.isHidden=hide
     }
     
     
